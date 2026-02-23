@@ -10,6 +10,7 @@ import re
 
 
 # SSE Configuration
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SSE_BASE_URL = "http://localhost"
 START_PORT = 9001
 
@@ -202,6 +203,7 @@ def start_all_servers():
         [script], 
         stdout=subprocess.DEVNULL, 
         stderr=subprocess.DEVNULL,
+        cwd=BASE_PATH,
         preexec_fn=os.setsid # Correctly handle process group
     )
     time.sleep(3) # Wait for startup
@@ -413,7 +415,7 @@ if __name__ == "__main__":
         choice = input("Enter Challenge Number (1-10): ")
         try:
             c_num = int(choice)
-            port = 9000 + c_num
+            port = (int(START_PORT) - 1) + c_num
         except:
             print("Invalid choice, defaulting to 1")
             port = 9001
