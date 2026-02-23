@@ -1,0 +1,126 @@
+# ============================================================
+# dv_mcp_labs – .dockerignore
+# Damn Vulnerable MCP Labs (security training project)
+# ============================================================
+
+# ----------------------------------------------------------
+# REAL SECRETS / CREDENTIALS – never bake into image
+# ----------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+secrets.json
+credentials.json
+config/tokens.json
+*.secret
+
+# ----------------------------------------------------------
+# Git metadata (not needed inside the image)
+# ----------------------------------------------------------
+.git
+.gitignore
+.gitattributes
+
+# ----------------------------------------------------------
+# Python cache / compiled bytecode
+# ----------------------------------------------------------
+__pycache__
+**/__pycache__
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info
+dist
+build
+.eggs
+
+# ----------------------------------------------------------
+# Virtual environments
+# ----------------------------------------------------------
+.venv
+venv
+ENV
+env
+.env
+.virtualenv
+
+# ----------------------------------------------------------
+# Test & coverage artefacts (not needed in prod image)
+# ----------------------------------------------------------
+tests/
+.pytest_cache
+.cache
+.coverage
+.coverage.*
+htmlcov
+coverage.xml
+test-results
+
+# ----------------------------------------------------------
+# IDE / editor files
+# ----------------------------------------------------------
+.vscode
+.idea
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# ----------------------------------------------------------
+# OS artefacts
+# ----------------------------------------------------------
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+
+# ----------------------------------------------------------
+# Documentation (reduce image size)
+# ----------------------------------------------------------
+docs/
+*.md
+!README.md
+
+# ----------------------------------------------------------
+# Logs & temp files
+# ----------------------------------------------------------
+*.log
+*.pid
+*.sock
+tmp/
+
+# ----------------------------------------------------------
+# Node / frontend (if any)
+# ----------------------------------------------------------
+node_modules
+npm-debug.log*
+yarn-error.log*
+
+# ----------------------------------------------------------
+# Docker-related files (not needed inside image itself)
+# ----------------------------------------------------------
+Dockerfile
+docker-compose*.yml
+.dockerignore
+docker-setup.md
+
+# ----------------------------------------------------------
+# CI / tooling
+# ----------------------------------------------------------
+.github/
+.travis.yml
+.circleci/
+Makefile
+
+# NOTE: Challenge server files (challenges/**/server.py etc.)
+# ARE intentionally included in the image – they contain
+# fake/example credentials that are part of the lab design.
+# ----------------------------------------------------------

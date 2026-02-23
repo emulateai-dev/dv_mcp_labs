@@ -1,0 +1,130 @@
+# ============================================================
+# dv_mcp_labs – .gitignore
+# Damn Vulnerable MCP Labs (security training project)
+# ============================================================
+
+# ----------------------------------------------------------
+# REAL SECRETS / CREDENTIALS – never commit these
+# ----------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+secrets.json
+credentials.json
+config/tokens.json
+*.secret
+
+# ----------------------------------------------------------
+# Python artifacts
+# ----------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.Python
+pip-wheel-metadata/
+*.whl
+
+# ----------------------------------------------------------
+# Virtual environments
+# ----------------------------------------------------------
+.venv/
+venv/
+ENV/
+env/
+.env/
+.virtualenv/
+
+# ----------------------------------------------------------
+# pytest / coverage
+# ----------------------------------------------------------
+.pytest_cache/
+.cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.coveragerc
+nosetests.xml
+test-results/
+
+# ----------------------------------------------------------
+# Jupyter / IPython
+# ----------------------------------------------------------
+.ipynb_checkpoints/
+*.ipynb
+
+# ----------------------------------------------------------
+# Runtime / temp data created by challenge servers
+# (written to /tmp at runtime – no need to track)
+# ----------------------------------------------------------
+/tmp/
+tmp/
+*.log
+*.pid
+*.sock
+
+# ----------------------------------------------------------
+# IDE / editor files
+# ----------------------------------------------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ----------------------------------------------------------
+# OS-generated files
+# ----------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V8
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+Icon?
+
+# ----------------------------------------------------------
+# Docker artefacts (local)
+# ----------------------------------------------------------
+*.tar
+*.tar.gz
+
+# ----------------------------------------------------------
+# Node / frontend (if any tooling added later)
+# ----------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+.pnpm-debug.log*
+
+# ----------------------------------------------------------
+# MCP / SSE server runtime state
+# ----------------------------------------------------------
+*.state
+state.json
+
+# NOTE: The fake credentials embedded inside challenge server
+# files (e.g. challenges/*/server.py) are INTENTIONAL –
+# they are part of the vulnerable-by-design lab exercises
+# and must remain in the repository.
+# Do NOT add challenge server files here.
