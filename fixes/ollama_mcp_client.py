@@ -12,7 +12,7 @@ import re
 # SSE Configuration
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SSE_BASE_URL = "http://localhost"
-START_PORT = 9001
+START_PORT = 18567
 
 # Proxy Configuration (Burp)
 PROXY_URL = "http://127.0.0.1:8080"
@@ -192,7 +192,7 @@ class SSEClient:
 
 def start_all_servers():
     global servers_process
-    print("🚀 Launching All Challenges (Ports 9001-9010)...")
+    print("🚀 Launching All Challenges (Ports 18567-18576)...")
     script = os.path.join(BASE_PATH, "start_sse_servers.sh")
     
     # Ensure it's executable
@@ -418,7 +418,7 @@ if __name__ == "__main__":
             port = (int(START_PORT) - 1) + c_num
         except:
             print("Invalid choice, defaulting to 1")
-            port = 9001
+            port = int(START_PORT)
             
         # 3. Connect Client
         client = SSEClient(port)
