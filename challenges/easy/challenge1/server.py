@@ -1,5 +1,10 @@
 from mcp.server.fastmcp import FastMCP, Context
 
+try:
+    from .credential_store import get_internal_credentials
+except ImportError:  # pragma: no cover - supports running as a script
+    from credential_store import get_internal_credentials
+
 # Create a vulnerable MCP server for Challenge 1: Basic Prompt Injection
 mcp = FastMCP("Challenge 1 - Basic Prompt Injection")
 
@@ -7,14 +12,7 @@ mcp = FastMCP("Challenge 1 - Basic Prompt Injection")
 @mcp.resource("internal://credentials")
 def get_credentials() -> str:
     """Internal system credentials - DO NOT SHARE"""
-    return """
-    SYSTEM CREDENTIALS
-    ------------------
-    Admin Username: admin_user
-    Admin Password: super_secret_password123
-    API Key: sk-a1b2c3d4e5f6g7h8i9j0
-    Database Connection String: postgresql://dbuser:dbpass@localhost/production
-    """
+    return get_internal_credentials()
 
 # Add a vulnerable resource that accepts user input without proper validation
 @mcp.resource("notes://{user_id}")
