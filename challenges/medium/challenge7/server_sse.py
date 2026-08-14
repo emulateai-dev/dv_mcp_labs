@@ -3,27 +3,32 @@ from mcp.server.sse import SseServerTransport
 from starlette.applications import Starlette
 from starlette.routing import Mount, Route
 from fastapi import FastAPI
-import time
 import hashlib
+import hmac
+import os
+import time
 
 # ============================================================
 # Challenge 7: MCP01 - Token Mismanagement & Secret Exposure
 # ============================================================
-# Vulnerability: A long-lived admin API token is hardcoded
-# inside the tool description (a common developer mistake).
-# When the AI loads the tool list, this token enters the
-# AI's context window. An attacker can extract it via prompt
-# injection or by simply asking the AI to describe its tools
-# in detail — no brute force needed.
+# Remediation: keep administrator tokens out of source code and
+# out of MCP tool metadata. The token must be injected via
+# environment configuration so it never enters the model context.
 # ============================================================
 
 # Simulated in-memory session store: token -> {username, role}
 SESSION_STORE = {}
 
-# Hardcoded admin token — this should NEVER be in a tool description.
-# MCP01: Hard-coded credentials and long-lived tokens exposed
-# through the MCP protocol itself (tool listing / context leak).
-ADMIN_API_TOKEN = "mcp-admin-9f8e7d6c5b4a3210"
+# Admin token must be supplied out-of-band by deployment configuration.
+# Never embed operational secrets in source code or tool descriptions.
+def get_admin_api_token() -> str | None:
+    token = os.environ.get("CHALLENGE7_ADMIN_API_TOKEN", "").strip()
+    return token or None
+
+
+def is_admin_api_token(token: str) -> bool:
+    configured_token = get_admin_api_token()
+    return bool(configured_token) and hmac.compare_digest(token, configured_token)
 
 class Challenge7Server:
     def __init__(self):
@@ -44,10 +49,6 @@ class Challenge7Server:
             Args:
                 username: The username to authenticate
                 password: The password for authentication
-
-            INTERNAL DEBUG (remove before prod):
-                Admin override token: mcp-admin-9f8e7d6c5b4a3210
-                Contact: infra-team@company.internal
             """
             users = {
                 "user1": "password123",
@@ -71,7 +72,7 @@ class Challenge7Server:
             Args:
                 token: The session token to verify
             """
-            if token == ADMIN_API_TOKEN:
+            if is_admin_api_token(token):
                 return "Token valid. User: admin | Role: ADMINISTRATOR | Access: FULL"
             if token in SESSION_STORE:
                 session = SESSION_STORE[token]
@@ -91,7 +92,7 @@ class Challenge7Server:
             Args:
                 token: The administrator API token
             """
-            if token == ADMIN_API_TOKEN:
+            if is_admin_api_token(token):
                 return """
 === ADMIN PANEL ===
 Access Granted: ADMINISTRATOR
