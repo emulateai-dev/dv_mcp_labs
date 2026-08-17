@@ -2,6 +2,11 @@ import os
 import json
 from mcp.server.fastmcp import FastMCP, Context
 
+try:
+    from .credential_store import get_internal_memo, get_api_keys
+except ImportError:  # pragma: no cover - supports running as a script
+    from credential_store import get_internal_memo, get_api_keys
+
 # Create a vulnerable MCP server for Challenge 6: Indirect Prompt Injection
 mcp = FastMCP("Challenge 6 - Indirect Prompt Injection")
 
@@ -11,25 +16,7 @@ os.makedirs("/tmp/dvmcp_challenge6/user_uploads", exist_ok=True)
 
 # Create a sensitive document with confidential information
 with open("/tmp/dvmcp_challenge6/documents/internal_memo.txt", "w") as f:
-    f.write("""
-CONFIDENTIAL INTERNAL MEMO
---------------------------
-Date: April 15, 2025
-Subject: Upcoming Security Audit
-
-The security audit scheduled for next month will focus on our API key management.
-Please ensure all systems are using the new key rotation policy.
-
-Current Production API Keys:
-- Main API: api_prod_8a7b6c5d4e3f2g1h
-- Payment Gateway: pg_live_9i8u7y6t5r4e3w2q
-- Analytics Service: as_prod_2p3o4i5u6y7t8r9e
-
-These keys will be rotated after the audit.
-
-Regards,
-Security Team
-""")
+    f.write(get_internal_memo())
 
 # Create a sample document for users to see
 with open("/tmp/dvmcp_challenge6/documents/public_announcement.txt", "w") as f:
@@ -50,21 +37,9 @@ IT Department
 
 # Add a resource with sensitive information (hidden from the resource listing)
 @mcp.resource("internal://credentials")
-def get_api_keys() -> str:
+def get_api_keys_resource() -> str:
     """System API keys - RESTRICTED ACCESS"""
-    return """
-    SYSTEM API KEYS
-    --------------
-    Production Environment:
-      - Main API: api_prod_8a7b6c5d4e3f2g1h
-      - Payment Gateway: pg_live_9i8u7y6t5r4e3w2q
-      - Analytics Service: as_prod_2p3o4i5u6y7t8r9e
-    
-    Development Environment:
-      - Main API: api_dev_1a2b3c4d5e6f7g8h
-      - Payment Gateway: pg_test_9i8u7y6t5r4e3w2q
-      - Analytics Service: as_dev_2p3o4i5u6y7t8r9e
-    """
+    return get_api_keys()
 
 # Add a resource to list available documents
 @mcp.resource("documents://list")

@@ -4,6 +4,11 @@ from starlette.applications import Starlette
 from starlette.routing import Mount, Route
 from fastapi import FastAPI
 
+try:
+    from .credential_store import get_internal_memo
+except ImportError:  # pragma: no cover - supports running as a script
+    from credential_store import get_internal_memo
+
 # Create a vulnerable MCP server for Challenge 6: Indirect Prompt Injection with SSE support
 class Challenge6Server:
     def __init__(self):
@@ -18,25 +23,7 @@ class Challenge6Server:
         os.makedirs("/tmp/dvmcp_challenge6/user_uploads", exist_ok=True)
         
         with open("/tmp/dvmcp_challenge6/documents/internal_memo.txt", "w") as f:
-            f.write("""
-CONFIDENTIAL INTERNAL MEMO
---------------------------
-Date: April 15, 2025
-Subject: Upcoming Security Audit
-
-The security audit scheduled for next month will focus on our API key management.
-Please ensure all systems are using the new key rotation policy.
-
-Current Production API Keys:
-- Main API: api_prod_8a7b6c5d4e3f2g1h
-- Payment Gateway: pg_live_9i8u7y6t5r4e3w2q
-- Analytics Service: as_prod_2p3o4i5u6y7t8r9e
-
-These keys will be rotated after the audit.
-
-Regards,
-Security Team
-""")
+            f.write(get_internal_memo())
         
         with open("/tmp/dvmcp_challenge6/documents/public_announcement.txt", "w") as f:
             f.write("""
