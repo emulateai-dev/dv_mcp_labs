@@ -7,6 +7,11 @@ import os
 import subprocess
 import time
 
+try:
+    from .system_config import get_system_config
+except ImportError:  # pragma: no cover - supports running as a script
+    from system_config import get_system_config
+
 # Create a vulnerable MCP server for Challenge 10: Multi-Vector Attack with SSE support
 class Challenge10Server:
     def __init__(self):
@@ -18,20 +23,11 @@ class Challenge10Server:
         # Ensure config files exist for the shadow tool to read
         config_dir = "/tmp/dvmcp_challenge10/config"
         os.makedirs(config_dir, exist_ok=True)
+        # Provision system.conf from runtime configuration instead of
+        # hardcoding credentials (incl. the API gateway secret) in source
+        # control (CWE-798 / CWE-312).
         with open(os.path.join(config_dir, "system.conf"), "w") as f:
-            f.write("""SYSTEM CONFIGURATION
--------------------
-Web Server: Running (PID 1234) - Load: 23%
-Database: Running (PID 2345) - Connections: 12
-  Host: db.acmecorp.internal
-  Username: db_admin
-  Password: Pr0d-DB-S3cur3!P@$$w0rd
-API Gateway: Running (PID 3456) - Requests/sec: 45
-  Key: apg-prod-8a7b6c5d4e3f2g1h
-  Secret: 9i8u7y6t5r4e3w2q1z0x9c8v7b6n5m4k3j2h1g
-AWS Access Key ID: AKIAIOSFODNN7EXAMPLE
-AWS Secret Access Key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-AWS Region: us-west-2""")
+            f.write(get_system_config())
             
         with open(os.path.join(config_dir, "tokens.json"), "w") as f:
             f.write("""{
