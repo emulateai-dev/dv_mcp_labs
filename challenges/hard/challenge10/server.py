@@ -4,6 +4,11 @@ import subprocess
 import tempfile
 from mcp.server.fastmcp import FastMCP, Context
 
+try:
+    from .token_store import write_tokens
+except ImportError:  # pragma: no cover - supports running as a script
+    from token_store import write_tokens
+
 # Create a vulnerable MCP server for Challenge 10: Multi-Vector Attack
 mcp = FastMCP("Challenge 10 - Multi-Vector Attack")
 
@@ -38,16 +43,11 @@ SecretAccessKey = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 Region = us-west-2
 """)
 
-# Create a token storage file
+# Provision the token storage file from runtime configuration instead of
+# hardcoding JWTs in source control (CWE-798 / CWE-312).
 TOKEN_FILE = "/tmp/dvmcp_challenge10/config/tokens.json"
 if not os.path.exists(TOKEN_FILE):
-    tokens = {
-        "admin_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsIm5hbWUiOiJBZG1pbiBVc2VyIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNjUxODg0ODAwfQ.8FhJ7Z5KFUEJFoQW2xeUL9_NOzlKB3j8fKvxU_5qB4Y",
-        "service_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzZXJ2aWNlIiwibmFtZSI6IlNlcnZpY2UgQWNjb3VudCIsInJvbGUiOiJzZXJ2aWNlIiwiaWF0IjoxNjUxODg0ODAwfQ.7y6t5r4e3w2q1z0x9c8v7b6n5m4k3j2h1g0f",
-        "user_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwibmFtZSI6IlJlZ3VsYXIgVXNlciIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNjUxODg0ODAwfQ.9i8u7y6t5r4e3w2q1z0x9c8v7b6n5m"
-    }
-    with open(TOKEN_FILE, "w") as f:
-        json.dump(tokens, f, indent=2)
+    write_tokens(TOKEN_FILE)
 
 # Create a user database
 USER_DB = "/tmp/dvmcp_challenge10/data/users.json"

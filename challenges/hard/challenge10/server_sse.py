@@ -7,6 +7,11 @@ import os
 import subprocess
 import time
 
+try:
+    from .token_store import get_tokens, write_tokens
+except ImportError:  # pragma: no cover - supports running as a script
+    from token_store import get_tokens, write_tokens
+
 # Create a vulnerable MCP server for Challenge 10: Multi-Vector Attack with SSE support
 class Challenge10Server:
     def __init__(self):
@@ -33,12 +38,9 @@ AWS Access Key ID: AKIAIOSFODNN7EXAMPLE
 AWS Secret Access Key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 AWS Region: us-west-2""")
             
-        with open(os.path.join(config_dir, "tokens.json"), "w") as f:
-            f.write("""{
-  "admin_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsIm5hbWUiOiJBZG1pbiBVc2VyIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNjUxODg0ODAwfQ.8FhJ7Z5KFUEJFoQW2xeUL9_NOzlKB3j8fKvxU_5qB4Y",
-  "service_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzZXJ2aWNlIiwibmFtZSI6IlNlcnZpY2UgQWNjb3VudCIsInJvbGUiOiJzZXJ2aWNlIiwiaWF0IjoxNjUxODg0ODAwfQ.7y6t5r4e3w2q1z0x9c8v7b6n5m4k3j2h1g0f",
-  "user_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwibmFtZSI6IlJlZ3VsYXIgVXNlciIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNjUxODg0ODAwfQ.9i8u7y6t5r4e3w2q1z0x9c8v7b6n5m"
-}""")
+        # Provision tokens.json from runtime configuration instead of
+        # hardcoding JWTs in source control (CWE-798 / CWE-312).
+        write_tokens(os.path.join(config_dir, "tokens.json"))
 
         @self.mcp.resource("system://info")
         def get_system_info() -> str:
@@ -64,7 +66,9 @@ AWS Region: us-west-2""")
                 password: The password for authentication
             """
             user = {"role": "admin", "email": f"{username}@acmecorp.com"}
-            token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsIm5hbWUiOiJBZG1pbiBVc2VyIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNjUxODg0ODAwfQ.8FhJ7Z5KFUEJFoQW2xeUL9_NOzlKB3j8fKvxU_5qB4Y"
+            # Token sourced from runtime configuration (env var), not hardcoded
+            # in source control (CWE-798 / CWE-312).
+            token = get_tokens()["admin_token"]
             
             # VULNERABILITY: Returning the token directly in the response
             return f"""

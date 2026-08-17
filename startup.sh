@@ -83,13 +83,13 @@ S3 Buckets:
   - employee-records-confidential
 EOF
 
-cat > /tmp/dvmcp_challenge10/config/tokens.json << EOF
-{
-  "admin_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsIm5hbWUiOiJBZG1pbiBVc2VyIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNjUxODg0ODAwfQ.8FhJ7Z5KFUEJFoQW2xeUL9_NOzlKB3j8fKvxU_5qB4Y",
-  "service_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzZXJ2aWNlIiwibmFtZSI6IlNlcnZpY2UgQWNjb3VudCIsInJvbGUiOiJzZXJ2aWNlIiwiaWF0IjoxNjUxODg0ODAwfQ.7y6t5r4e3w2q1z0x9c8v7b6n5m4k3j2h1g0f",
-  "user_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwibmFtZSI6IlJlZ3VsYXIgVXNlciIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNjUxODg0ODAwfQ.9i8u7y6t5r4e3w2q1z0x9c8v7b6n5m"
-}
-EOF
+# Provision tokens.json without hardcoding secrets in source control (CWE-798/CWE-312).
+# Real tokens are injected via DVMCP_CHALLENGE10_{ADMIN,SERVICE,USER}_TOKEN env vars;
+# when unset the helper writes clearly-marked, non-functional placeholder values.
+# The challenge10 server_sse.py also provisions this file on startup, so this call
+# is best-effort and falls back gracefully if the helper is unavailable.
+python -m challenges.hard.challenge10.token_store write_tokens >/dev/null 2>&1 || \
+  python /app/challenges/hard/challenge10/token_store.py >/dev/null 2>&1 || true
 
 # Challenge 6 setup (document processing)
 mkdir -p /tmp/dvmcp_challenge6/user_uploads
