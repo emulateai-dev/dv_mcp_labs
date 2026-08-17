@@ -2,40 +2,24 @@ import os
 import json
 from mcp.server.fastmcp import FastMCP, Context
 
+try:
+    from .credential_store import get_tokens as _get_runtime_tokens
+except ImportError:  # pragma: no cover - supports running as a script
+    from credential_store import get_tokens as _get_runtime_tokens
+
 # Create a vulnerable MCP server for Challenge 7: Token Theft
 mcp = FastMCP("Challenge 7 - Token Theft")
 
 # Create a directory for token storage
 os.makedirs("/tmp/dvmcp_challenge7", exist_ok=True)
 
-# Create a token storage file with insecurely stored tokens
+# Build the token store via the credential_store module so that no live
+# secret is hardcoded in source control (CWE-798 / CWE-312). Real secrets are
+# supplied at runtime through DVMCP_CHALLENGE7_* environment variables.
 TOKEN_FILE = "/tmp/dvmcp_challenge7/tokens.json"
-if not os.path.exists(TOKEN_FILE):
-    tokens = {
-        "email_service": {
-            "service_name": "EmailPro API",
-            "api_key": "epro_api_5f4e3d2c1b0a9z8y7x",
-            "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFDTUUgQ29ycCIsImVtYWlsX2FjY2VzcyI6InRydWUiLCJpYXQiOjE2NTE4ODQ4MDB9.5TxfEAVbZRGbKnXaL9Lrx9NqXSNFw2ac4FDzPHvRzSQ",
-            "refresh_token": "rt_7y6t5r4e3w2q1z0x9c8v7b6n5m4k3j2h1g0f",
-            "expires_at": "2025-12-31T23:59:59Z"
-        },
-        "cloud_storage": {
-            "service_name": "CloudBox Storage",
-            "api_key": "cbx_api_1a2b3c4d5e6f7g8h9i",
-            "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5ODc2NTQzMjEwIiwibmFtZSI6IkFDTUUgQ29ycCIsInN0b3JhZ2VfYWNjZXNzIjoidHJ1ZSIsImlhdCI6MTY1MTg4NDgwMH0.8FhJ7Z5KFUEJFoQW2xeUL9_NOzlKB3j8fKvxU_5qB4Y",
-            "refresh_token": "rt_9i8u7y6t5r4e3w2q1z0x9c8v7b6n5m",
-            "expires_at": "2025-12-31T23:59:59Z"
-        },
-        "analytics_platform": {
-            "service_name": "DataMetrics Analytics",
-            "api_key": "dm_api_9z8y7x6w5v4u3t2s1r",
-            "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NDMyMTA5ODc2IiwibmFtZSI6IkFDTUUgQ29ycCIsImFuYWx5dGljc19hY2Nlc3MiOiJ0cnVlIiwiaWF0IjoxNjUxODg0ODAwfQ.QzHJ2_8NXiPd5Vl6r3S1VJqFaC3-U_a9FPRJXBgU8Pg",
-            "refresh_token": "rt_3e4r5t6y7u8i9o0p1a2s3d4f5g6h7j",
-            "expires_at": "2025-12-31T23:59:59Z"
-        }
-    }
-    with open(TOKEN_FILE, "w") as f:
-        json.dump(tokens, f, indent=2)
+_runtime_tokens = _get_runtime_tokens()
+with open(TOKEN_FILE, "w") as _f:
+    json.dump(_runtime_tokens, _f, indent=2)
 
 # Function to read tokens
 def get_tokens():
