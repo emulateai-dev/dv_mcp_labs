@@ -1,9 +1,15 @@
+import time
+
 from mcp.server.fastmcp import FastMCP, Context
 from mcp.server.sse import SseServerTransport
 from starlette.applications import Starlette
 from starlette.routing import Mount, Route
 from fastapi import FastAPI
-import time
+
+try:  # supports both package import and running as a script
+    from .credential_store import build_shared_context
+except ImportError:  # pragma: no cover
+    from credential_store import build_shared_context
 
 # ============================================================
 # Challenge 9: MCP10 - Context Injection & Over-Sharing
@@ -16,18 +22,20 @@ import time
 # the AI's "context", another user connecting to the same server
 # can query the AI to extract that cross-session data.
 # ============================================================
+#
+# Remediation note (CWE-798 / CWE-312): the seed notes previously
+# embedded real-looking production secrets (a database password and
+# an API key) directly in source control. They are now sourced from
+# the credential_store module, which reads DVMCP_CHALLENGE9_*
+# environment variables and falls back to clearly-marked, non-functional
+# placeholder values when unset — so no real secret ships in the repo
+# or a built container image, while the challenge's cross-session leak
+# behavior is preserved for learners.
+# ============================================================
 
-# Global context dictionary - VULNERABLE: Shared across all client sessions
-SHARED_CONTEXT = {
-    "admin": [
-        {"timestamp": int(time.time()) - 3600, "note": "Reminder: The production database password for the new cluster is ProdDB_2025_!@#$"},
-        {"timestamp": int(time.time()) - 1800, "note": "Meeting with security team at 2 PM to discuss the recent audit findings."}
-    ],
-    "system": [
-        {"timestamp": int(time.time()) - 86400, "note": "Server initialized successfully. API key loaded into memory."},
-        {"timestamp": int(time.time()) - 86399, "note": "API_KEY=dv_mcp_api_9f8d7c6b5a41234567890abcdef"}
-    ]
-}
+# Global context dictionary - VULNERABLE: Shared across all client sessions.
+# Seeded via credential_store so no live secret is checked into source.
+SHARED_CONTEXT = build_shared_context()
 
 class Challenge9Server:
     def __init__(self):
