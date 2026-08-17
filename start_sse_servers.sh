@@ -13,6 +13,15 @@ mkdir -p /tmp/dvmcp_challenge6/user_uploads
 mkdir -p /tmp/dvmcp_challenge8/sensitive
 mkdir -p /tmp/dvmcp_challenge10/config
 
+# Provision Challenge 8 credentials.txt without hardcoding secrets in source
+# control (CWE-798/CWE-312). Real values are injected via DVMCP_CHALLENGE8_*
+# env vars; when unset the helper writes clearly-marked, non-functional
+# placeholder values. Best-effort; safe no-op if the helper is unavailable.
+python -m challenges.hard.challenge8.credential_store write_credentials \
+  > /tmp/dvmcp_challenge8/sensitive/credentials.txt 2>/dev/null || \
+  python challenges/hard/challenge8/credential_store.py \
+  > /tmp/dvmcp_challenge8/sensitive/credentials.txt 2>/dev/null || true
+
 # Initialize state files
 echo '{"weather_tool_calls": 0}' > /tmp/dvmcp_challenge4/state/state.json
 

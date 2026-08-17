@@ -48,24 +48,16 @@ Cloud Infrastructure:
 EOF
 
 # Challenge 8 setup (code execution)
+# Provision credentials.txt without hardcoding secrets in source control
+# (CWE-798/CWE-312). Real values are injected via DVMCP_CHALLENGE8_* env vars;
+# when unset the helper writes clearly-marked, non-functional placeholder values.
+# The challenge8 server_sse.py also provisions this file on startup, so this
+# call is best-effort and falls back gracefully if the helper is unavailable.
 mkdir -p /tmp/dvmcp_challenge8/sensitive
-cat > /tmp/dvmcp_challenge8/sensitive/credentials.txt << EOF
-PRODUCTION CREDENTIALS
-----------------------
-Database:
-  Host: db.acmecorp.internal
-  Username: db_admin
-  Password: Pr0d-DB-S3cur3!P@$$w0rd
-
-AWS:
-  Access Key ID: AKIAIOSFODNN7EXAMPLE
-  Secret Access Key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-  Region: us-west-2
-
-API Gateway:
-  Key: apg-prod-8a7b6c5d4e3f2g1h
-  Secret: 9i8u7y6t5r4e3w2q1z0x9c8v7b6n5m4k3j2h1g
-EOF
+python -m challenges.hard.challenge8.credential_store write_credentials \
+  > /tmp/dvmcp_challenge8/sensitive/credentials.txt 2>/dev/null || \
+  python /app/challenges/hard/challenge8/credential_store.py \
+  > /tmp/dvmcp_challenge8/sensitive/credentials.txt 2>/dev/null || true
 
 # Challenge 10 setup (multi-vector attack)
 mkdir -p /tmp/dvmcp_challenge10/config

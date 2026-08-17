@@ -4,31 +4,20 @@ import subprocess
 import tempfile
 from mcp.server.fastmcp import FastMCP, Context
 
+try:  # supports both package import and running as a script
+    from .credential_store import write_credentials
+except ImportError:  # pragma: no cover
+    from credential_store import write_credentials
+
 # Create a vulnerable MCP server for Challenge 8: Malicious Code Execution
 mcp = FastMCP("Challenge 8 - Malicious Code Execution")
 
-# Create a directory for sensitive files
+# Create a directory for sensitive files and seed credentials.txt.
+# Secrets are sourced from the environment (DVMCP_CHALLENGE8_*) via the
+# credential_store module; non-functional placeholder defaults are used when
+# unset, so no real credential is checked into source control (CWE-798/CWE-312).
 os.makedirs("/tmp/dvmcp_challenge8/sensitive", exist_ok=True)
-
-# Create a sensitive file with confidential information
-with open("/tmp/dvmcp_challenge8/sensitive/credentials.txt", "w") as f:
-    f.write("""
-PRODUCTION CREDENTIALS
-----------------------
-Database:
-  Host: db.acmecorp.internal
-  Username: db_admin
-  Password: Pr0d-DB-S3cur3!P@$$w0rd
-
-AWS:
-  Access Key ID: AKIAIOSFODNN7EXAMPLE
-  Secret Access Key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-  Region: us-west-2
-
-API Gateway:
-  Key: apg-prod-8a7b6c5d4e3f2g1h
-  Secret: 9i8u7y6t5r4e3w2q1z0x9c8v7b6n5m4k3j2h1g
-""")
+write_credentials("/tmp/dvmcp_challenge8/sensitive/credentials.txt")
 
 # Add a resource with information about the system
 @mcp.resource("system://info")
