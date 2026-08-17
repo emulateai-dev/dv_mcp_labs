@@ -28,6 +28,15 @@ Senior Engineers: $180,000-$250,000/year
 Mid-level Engineers: $120,000-$170,000/year
 Junior Engineers: $80,000-$110,000/year" > /tmp/dvmcp_challenge3/private/employee_salaries.txt
 
+# Provision Challenge 3 system_credentials.txt without hardcoding secrets in
+# source control (CWE-798/CWE-312). Real values are injected via
+# DVMCP_CHALLENGE3_* env vars; when unset the helper writes clearly-marked,
+# non-functional placeholder values. Best-effort; safe no-op if unavailable.
+python -m challenges.easy.challenge3.credential_store write_credentials \
+  > /tmp/dvmcp_challenge3/private/system_credentials.txt 2>/dev/null || \
+  python challenges/easy/challenge3/credential_store.py \
+  > /tmp/dvmcp_challenge3/private/system_credentials.txt 2>/dev/null || true
+
 # Create sample files for Challenge 10
 echo "SYSTEM CONFIGURATION
 -------------------

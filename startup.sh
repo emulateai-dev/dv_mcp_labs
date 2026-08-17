@@ -33,19 +33,16 @@ Synergy Opportunities:
 - Migrate their customers to our infrastructure
 EOF
 
-cat > /tmp/dvmcp_challenge3/private/system_credentials.txt << EOF
-SYSTEM CREDENTIALS - HIGHLY RESTRICTED
--------------------------------------
-Production Database: 
-  Host: db.acmecorp.internal
-  Username: admin_prod
-  Password: Pr0d-DB-S3cret!
-
-Cloud Infrastructure:
-  Account ID: ACME-CLOUD-92731
-  API Key: ak_live_7y2JHGd8sKlM9nPzXqRt5vWx
-  Secret: cs_live_bNp5T2vR8sKlM9nQzXwJhGf4
-EOF
+# Provision system_credentials.txt without hardcoding secrets in source
+# control (CWE-798/CWE-312). Real values are injected via DVMCP_CHALLENGE3_*
+# env vars; when unset the helper writes clearly-marked, non-functional
+# placeholder values. The challenge3 server.py also provisions this file on
+# import, so this call is best-effort and falls back gracefully if the helper
+# is unavailable.
+python -m challenges.easy.challenge3.credential_store write_credentials \
+  > /tmp/dvmcp_challenge3/private/system_credentials.txt 2>/dev/null || \
+  python /app/challenges/easy/challenge3/credential_store.py \
+  > /tmp/dvmcp_challenge3/private/system_credentials.txt 2>/dev/null || true
 
 # Challenge 8 setup (code execution)
 mkdir -p /tmp/dvmcp_challenge8/sensitive
