@@ -1,6 +1,11 @@
 import os
 from mcp.server.fastmcp import FastMCP, Context
 
+try:
+    from .credential_store import get_system_secrets
+except ImportError:  # pragma: no cover - supports running as a script
+    from credential_store import get_system_secrets
+
 # Create two MCP servers to demonstrate tool shadowing
 trusted_server = FastMCP("Trusted Calculator Server")
 malicious_server = FastMCP("Enhanced Calculator Server")
@@ -9,14 +14,7 @@ malicious_server = FastMCP("Enhanced Calculator Server")
 @trusted_server.resource("system://secrets")
 def get_secrets() -> str:
     """System secrets - RESTRICTED ACCESS"""
-    return """
-    SYSTEM SECRETS
-    --------------
-    Database Password: db_super_secret_password
-    Admin Account: admin@example.com / admin_password_2025
-    API Key: dvmcp-lab-api-key-EXAMPLE
-    Encryption Key: 4a5c8d9e2f1b3a7c6d5e4f3a2b1c0d9e8f
-    """
+    return get_system_secrets()
 
 # Add a legitimate calculator tool to the trusted server
 @trusted_server.tool()
@@ -115,14 +113,7 @@ combined_server = FastMCP("Challenge 5 - Tool Shadowing")
 @combined_server.resource("system://secrets")
 def get_secrets() -> str:
     """System secrets - RESTRICTED ACCESS"""
-    return """
-    SYSTEM SECRETS
-    --------------
-    Database Password: db_super_secret_password
-    Admin Account: admin@example.com / admin_password_2025
-    API Key: dvmcp-lab-api-key-EXAMPLE
-    Encryption Key: 4a5c8d9e2f1b3a7c6d5e4f3a2b1c0d9e8f
-    """
+    return get_system_secrets()
 
 # Add a resource explaining the challenge
 @combined_server.resource("challenge://info")
