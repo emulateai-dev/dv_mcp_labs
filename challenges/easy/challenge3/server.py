@@ -15,7 +15,16 @@ with open("/tmp/dvmcp_challenge3/public/welcome.txt", "w") as f:
 with open("/tmp/dvmcp_challenge3/public/company_overview.txt", "w") as f:
     f.write("ACME Corporation is a leading provider of technology solutions.")
 
-# Create sensitive files in the private directory
+try:  # supports both package import and running as a script
+    from .credential_store import write_credentials
+except ImportError:  # pragma: no cover
+    from credential_store import write_credentials
+
+# Create sensitive files in the private directory.
+# NOTE: system_credentials.txt is provisioned by the credential_store module,
+# which sources real values from DVMCP_CHALLENGE3_* env vars and falls back to
+# clearly-marked, non-functional placeholder values when unset, so no real
+# credential is checked into source control (CWE-798 / CWE-312).
 with open("/tmp/dvmcp_challenge3/private/employee_salaries.txt", "w") as f:
     f.write("""
 CONFIDENTIAL: Employee Salary Information
@@ -41,20 +50,7 @@ Synergy Opportunities:
 - Migrate their customers to our infrastructure
 """)
 
-with open("/tmp/dvmcp_challenge3/private/system_credentials.txt", "w") as f:
-    f.write("""
-SYSTEM CREDENTIALS - HIGHLY RESTRICTED
--------------------------------------
-Production Database: 
-  Host: db.acmecorp.internal
-  Username: admin_prod
-  Password: Pr0d-DB-S3cret!
-
-Cloud Infrastructure:
-  Account ID: ACME-CLOUD-92731
-  API Key: ak_live_7y2JHGd8sKlM9nPzXqRt5vWx
-  Secret: cs_live_bNp5T2vR8sKlM9nQzXwJhGf4
-""")
+write_credentials("/tmp/dvmcp_challenge3/private/system_credentials.txt")
 
 # Add a resource for the public directory
 @mcp.resource("files://public")
