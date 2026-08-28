@@ -6,6 +6,11 @@ from fastapi import FastAPI
 import time
 import hashlib
 
+try:
+    from .credential_store import get_admin_api_token, get_admin_system_secrets
+except ImportError:  # pragma: no cover - supports running as a script
+    from credential_store import get_admin_api_token, get_admin_system_secrets
+
 # ============================================================
 # Challenge 7: MCP01 - Token Mismanagement & Secret Exposure
 # ============================================================
@@ -20,10 +25,10 @@ import hashlib
 # Simulated in-memory session store: token -> {username, role}
 SESSION_STORE = {}
 
-# Hardcoded admin token — this should NEVER be in a tool description.
-# MCP01: Hard-coded credentials and long-lived tokens exposed
-# through the MCP protocol itself (tool listing / context leak).
-ADMIN_API_TOKEN = "mcp-admin-9f8e7d6c5b4a3210"
+# Admin API token sourced from the credential_store module so no live
+# secret is hardcoded in source control (CWE-798 / CWE-312). Override at
+# runtime via the DVMCP_CHALLENGE7_ADMIN_API_TOKEN environment variable.
+ADMIN_API_TOKEN = get_admin_api_token()
 
 class Challenge7Server:
     def __init__(self):
@@ -46,7 +51,8 @@ class Challenge7Server:
                 password: The password for authentication
 
             INTERNAL DEBUG (remove before prod):
-                Admin override token: mcp-admin-9f8e7d6c5b4a3210
+                Admin override token supplied via the
+                DVMCP_CHALLENGE7_ADMIN_API_TOKEN environment variable.
                 Contact: infra-team@company.internal
             """
             users = {
@@ -92,6 +98,7 @@ class Challenge7Server:
                 token: The administrator API token
             """
             if token == ADMIN_API_TOKEN:
+                secrets = get_admin_system_secrets()
                 return """
 === ADMIN PANEL ===
 Access Granted: ADMINISTRATOR
@@ -102,13 +109,18 @@ Registered Users:
   - admin (role: ADMINISTRATOR)
 
 System Secrets:
-  - DB_PASSWORD: prod_db_s3cr3t_2025!
-  - INTERNAL_API_KEY: int-api-4f5e6d7c8b9a
-  - S3_BUCKET: company-financials-prod
+  - DB_PASSWORD: {db_password}
+  - INTERNAL_API_KEY: {internal_api_key}
+  - S3_BUCKET: {s3_bucket}
 
-Active Sessions: {}
+Active Sessions: {sessions}
 ===================
-""".format(len(SESSION_STORE))
+""".format(
+                    db_password=secrets["DB_PASSWORD"],
+                    internal_api_key=secrets["INTERNAL_API_KEY"],
+                    s3_bucket=secrets["S3_BUCKET"],
+                    sessions=len(SESSION_STORE),
+                )
             return "Access denied. Invalid or insufficient token."
 
         # Mount SSE
