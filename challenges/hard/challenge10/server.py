@@ -3,6 +3,14 @@ import json
 import subprocess
 import tempfile
 from mcp.server.fastmcp import FastMCP, Context
+from challenges.hard.challenge10.secrets_store import (
+    get_system_conf as _runtime_system_conf,
+    write_tokens as _runtime_write_tokens,
+    write_users as _runtime_write_users,
+    get_tokens as _runtime_get_tokens,
+    get_users as _runtime_get_users,
+    get_admin_dashboard as _runtime_get_admin_dashboard,
+)
 
 # Create a vulnerable MCP server for Challenge 10: Multi-Vector Attack
 mcp = FastMCP("Challenge 10 - Multi-Vector Attack")
@@ -12,68 +20,22 @@ os.makedirs("/tmp/dvmcp_challenge10/data", exist_ok=True)
 os.makedirs("/tmp/dvmcp_challenge10/config", exist_ok=True)
 os.makedirs("/tmp/dvmcp_challenge10/logs", exist_ok=True)
 
-# Create a sensitive configuration file
+# Provision system.conf from runtime configuration instead of
+# hardcoding production secrets in source control (CWE-798 / CWE-312).
 with open("/tmp/dvmcp_challenge10/config/system.conf", "w") as f:
-    f.write("""
-[System]
-Name = ACME Corp Production Server
-Environment = Production
-Debug = False
+    f.write(_runtime_system_conf())
 
-[Database]
-Host = db.acmecorp.internal
-Port = 5432
-Database = acme_prod
-Username = db_admin
-Password = Pr0d-DB-S3cur3!P@$$w0rd
-
-[API]
-Gateway = https://api.acmecorp.com
-Key = apg-prod-8a7b6c5d4e3f2g1h
-Secret = 9i8u7y6t5r4e3w2q1z0x9c8v7b6n5m4k3j2h1g
-
-[AWS]
-AccessKeyID = AKIAIOSFODNN7EXAMPLE
-SecretAccessKey = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-Region = us-west-2
-""")
-
-# Create a token storage file
+# Create a token storage file from runtime configuration (no hardcoded JWTs
+# in source control — CWE-798 / CWE-312).
 TOKEN_FILE = "/tmp/dvmcp_challenge10/config/tokens.json"
 if not os.path.exists(TOKEN_FILE):
-    tokens = {
-        "admin_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsIm5hbWUiOiJBZG1pbiBVc2VyIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNjUxODg0ODAwfQ.8FhJ7Z5KFUEJFoQW2xeUL9_NOzlKB3j8fKvxU_5qB4Y",
-        "service_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzZXJ2aWNlIiwibmFtZSI6IlNlcnZpY2UgQWNjb3VudCIsInJvbGUiOiJzZXJ2aWNlIiwiaWF0IjoxNjUxODg0ODAwfQ.7y6t5r4e3w2q1z0x9c8v7b6n5m4k3j2h1g0f",
-        "user_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwibmFtZSI6IlJlZ3VsYXIgVXNlciIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNjUxODg0ODAwfQ.9i8u7y6t5r4e3w2q1z0x9c8v7b6n5m"
-    }
-    with open(TOKEN_FILE, "w") as f:
-        json.dump(tokens, f, indent=2)
+    _runtime_write_tokens(TOKEN_FILE)
 
-# Create a user database
+# Create a user database from runtime configuration (no hardcoded password
+# hashes / cleartext password hints in source control — CWE-798 / CWE-312).
 USER_DB = "/tmp/dvmcp_challenge10/data/users.json"
 if not os.path.exists(USER_DB):
-    users = {
-        "admin": {
-            "username": "admin",
-            "password_hash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",  # password: password
-            "role": "admin",
-            "email": "admin@acmecorp.com"
-        },
-        "service": {
-            "username": "service",
-            "password_hash": "b03ddf3ca2e714a6548e7495e2a03f5e824eaac9837cd7f159c67b90fb4b7342",  # password: service123
-            "role": "service",
-            "email": "service@acmecorp.com"
-        },
-        "user": {
-            "username": "user",
-            "password_hash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",  # password: password
-            "role": "user",
-            "email": "user@acmecorp.com"
-        }
-    }
-    with open(USER_DB, "w") as f:
-        json.dump(users, f, indent=2)
+    _runtime_write_users(USER_DB)
 
 # Function to read users
 def get_users():
@@ -120,23 +82,7 @@ Our products include cloud computing, data analytics, and AI services.
 @mcp.resource("internal://credentials")
 def get_admin_info() -> str:
     """ADMIN ONLY: Sensitive system information"""
-    return """
-ADMIN DASHBOARD
---------------
-System Status: All services operational
-Last Backup: 2025-04-15 03:00 UTC
-Security Alerts: None
-
-SENSITIVE INFORMATION:
-- Master Password: m@st3r-p@$$w0rd-2025
-- Recovery Email: recovery@acmecorp.com
-- Emergency Contact: John Doe (555-123-4567)
-
-SYSTEM NOTES:
-- Remember to rotate API keys by end of month
-- Schedule security audit for next quarter
-- Update firewall rules for new office IP range
-"""
+    return _runtime_get_admin_dashboard()
 
 # Add a vulnerable authentication tool
 @mcp.tool()
