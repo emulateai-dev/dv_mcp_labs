@@ -6,6 +6,11 @@ from fastapi import FastAPI
 import time
 import hashlib
 
+try:
+    from .credential_store import get_admin_api_token
+except ImportError:  # pragma: no cover - supports running as a script
+    from credential_store import get_admin_api_token
+
 # ============================================================
 # Challenge 7: MCP01 - Token Mismanagement & Secret Exposure
 # ============================================================
@@ -20,10 +25,12 @@ import hashlib
 # Simulated in-memory session store: token -> {username, role}
 SESSION_STORE = {}
 
-# Hardcoded admin token — this should NEVER be in a tool description.
-# MCP01: Hard-coded credentials and long-lived tokens exposed
-# through the MCP protocol itself (tool listing / context leak).
-ADMIN_API_TOKEN = "mcp-admin-9f8e7d6c5b4a3210"
+# Admin API token sourced from the credential_store module so no live
+# secret is hardcoded in source control (CWE-798 / CWE-312). Override at
+# runtime via the DVMCP_CHALLENGE7_ADMIN_API_TOKEN environment variable.
+# (The previous implementation hardcoded the token literal here AND inside the
+# authenticate() tool docstring, leaking it through the MCP tool listing.)
+ADMIN_API_TOKEN = get_admin_api_token()
 
 class Challenge7Server:
     def __init__(self):
@@ -46,7 +53,8 @@ class Challenge7Server:
                 password: The password for authentication
 
             INTERNAL DEBUG (remove before prod):
-                Admin override token: mcp-admin-9f8e7d6c5b4a3210
+                Admin override token supplied via the
+                DVMCP_CHALLENGE7_ADMIN_API_TOKEN environment variable.
                 Contact: infra-team@company.internal
             """
             users = {
