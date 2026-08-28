@@ -41,11 +41,12 @@ S3 Buckets:
   - financial-reports-2025
   - employee-records-confidential" > /tmp/dvmcp_challenge10/config/system.conf
 
-echo '{
-  "admin_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsIm5hbWUiOiJBZG1pbiBVc2VyIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNjUxODg0ODAwfQ.8FhJ7Z5KFUEJFoQW2xeUL9_NOzlKB3j8fKvxU_5qB4Y",
-  "service_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzZXJ2aWNlIiwibmFtZSI6IlNlcnZpY2UgQWNjb3VudCIsInJvbGUiOiJzZXJ2aWNlIiwiaWF0IjoxNjUxODg0ODAwfQ.7y6t5r4e3w2q1z0x9c8v7b6n5m4k3j2h1g0f",
-  "user_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwibmFtZSI6IlJlZ3VsYXIgVXNlciIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNjUxODg0ODAwfQ.9i8u7y6t5r4e3w2q1z0x9c8v7b6n5m"
-}' > /tmp/dvmcp_challenge10/config/tokens.json
+# Provision tokens.json without hardcoding secrets in source control (CWE-798/CWE-312).
+# Real tokens are injected via DVMCP_CHALLENGE10_{ADMIN,SERVICE,USER}_TOKEN env vars;
+# when unset the helper writes clearly-marked, non-functional placeholder values.
+./venv/bin/python -m challenges.hard.challenge10.token_store write_tokens >/dev/null
+# Fall back to running the module directly if the venv/package layout is unavailable.
+./venv/bin/python challenges/hard/challenge10/token_store.py >/dev/null || true
 
 # Start all servers in the background
 ./venv/bin/python challenges/easy/challenge1/server_sse.py &
